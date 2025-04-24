@@ -118,7 +118,7 @@
       const formData = new FormData();
       formData.append('video', file);
 
-      fetch('http://localhost:5000/upload', {
+      fetch('https://34a6-125-209-169-205.ngrok-free.app /upload', {
         method: 'POST',
         body: formData
       })
@@ -136,7 +136,7 @@
         return;
       }
 
-      fetch('http://localhost:5000/generate', {
+      fetch('https://34a6-125-209-169-205.ngrok-free.app/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
