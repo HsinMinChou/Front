@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HSINMIN GLOBAL MUSIC</title>
+  <style>
+    body {
+      margin: 0;
+      background-color: #0b0b0b;
+      font-family: 'Georgia', serif;
+      color: #ded6c1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo h1 {
+      font-size: 60px;
+      margin: 0;
+      font-weight: normal;
+    }
+
+    .logo p {
+      margin: 5px 0 0;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
+
+    .generate-button {
+      background-color: #ded6c1;
+      color: #0b0b0b;
+      padding: 12px 30px;
+      font-size: 18px;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .input-container {
+      background-color: #ded6c1;
+      border-radius: 20px;
+      padding: 20px;
+      width: 60%;
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-container input[type="text"] {
+      border: none;
+      background: none;
+      font-size: 16px;
+      color: #0b0b0b;
+      width: 100%;
+      outline: none;
+    }
+
+    .input-container .icon-button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 10px;
+      font-size: 18px;
+    }
+
+    .f-hole {
+      position: absolute;
+      top: 50px;
+      font-size: 120px;
+      color: #333;
+    }
+
+    .f-left {
+      left: 40px;
+    }
+
+    .f-right {
+      right: 40px;
+    }
+
+    #file-upload {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="f-hole f-left">ƒ</div>
+  <div class="f-hole f-right">ƒ</div>
+
+  <div class="logo">
+    <h1>HM</h1>
+    <p>HSINMIN GLOBAL MUSIC<br>PRODUCTION CORPORATION</p>
+  </div>
+
+  <button class="generate-button" onclick="handleGenerate()">GENERATE</button>
+
+  <div class="input-container">
+    <input type="text" id="genre-input" placeholder="TYPE THE SEPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT">
+    <button class="icon-button" onclick="document.getElementById('file-upload').click()">📎</button>
+    <input type="file" id="file-upload">
+    <a class="icon-button" id="download-link" href="#" download style="font-size: 18px;">⬇️</a>
+  </div>
+
+  <script>
+    let uploadedFileName = null;
+
+    document.getElementById('file-upload').addEventListener('change', function(event) {
+      const file = event.target.files[0];
+      const formData = new FormData();
+      formData.append('video', file);
+
+      fetch('http://localhost:5000/upload', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(data => {
+        uploadedFileName = data.filename;
+        alert('File uploaded: ' + uploadedFileName);
+      })
+      .catch(error => alert('Upload failed: ' + error));
+    });
+
+    function handleGenerate() {
+      if (!uploadedFileName) {
+        alert('Please upload a video file first.');
+        return;
+      }
+
+      fetch('http://localhost:5000/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ filename: uploadedFileName })
+      })
+      .then(response => response.json())
+      .then(data => {
+        const musicFile = data.music_file;
+        const downloadUrl = 'http://localhost:5000/download/' + musicFile;
+        const downloadLink = document.getElementById('download-link');
+        downloadLink.href = downloadUrl;
+        downloadLink.classList.remove('disabled');
+        alert('Music generated successfully! Click the arrow to download.');
+      })
+      .catch(error => alert('Generation failed: ' + error));
+    }
+  </script>
+</body>
+</html>
