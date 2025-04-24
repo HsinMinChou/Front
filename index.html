@@ -112,31 +112,36 @@
 
   <script>
     let uploadedFileName = null;
-
+    const BACKEND_URL = "https://34a6-125-209-169-205.ngrok-free.app";
+  
     document.getElementById('file-upload').addEventListener('change', function(event) {
       const file = event.target.files[0];
       const formData = new FormData();
       formData.append('video', file);
-
-      fetch('https://34a6-125-209-169-205.ngrok-free.app /upload', {
+  
+      fetch(`${BACKEND_URL}/upload`, {
         method: 'POST',
         body: formData
       })
       .then(response => response.json())
       .then(data => {
-        uploadedFileName = data.filename;
-        alert('File uploaded: ' + uploadedFileName);
+        if (data.status === "success") {
+          uploadedFileName = data.filename;
+          alert('影片上傳成功：' + uploadedFileName);
+        } else {
+          alert('上傳失敗：' + data.error);
+        }
       })
-      .catch(error => alert('Upload failed: ' + error));
+      .catch(error => alert('上傳錯誤：' + error));
     });
-
+  
     function handleGenerate() {
       if (!uploadedFileName) {
-        alert('Please upload a video file first.');
+        alert('請先上傳影片檔案。');
         return;
       }
-
-      fetch('https://34a6-125-209-169-205.ngrok-free.app/generate', {
+  
+      fetch(`${BACKEND_URL}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -145,14 +150,18 @@
       })
       .then(response => response.json())
       .then(data => {
-        const musicFile = data.music_file;
-        const downloadUrl = ' https://34a6-125-209-169-205.ngrok-free.app/' + musicFile;
-        const downloadLink = document.getElementById('download-link');
-        downloadLink.href = downloadUrl;
-        downloadLink.classList.remove('disabled');
-        alert('Music generated successfully! Click the arrow to download.');
+        if (data.status === "success") {
+          const musicFile = data.music_file;
+          const downloadUrl = `${BACKEND_URL}/download/${musicFile}`;
+          const downloadLink = document.getElementById('download-link');
+          downloadLink.href = downloadUrl;
+          downloadLink.classList.remove('disabled');
+          alert('音樂生成成功！請點箭頭下載。');
+        } else {
+          alert('音樂生成失敗：' + data.error);
+        }
       })
-      .catch(error => alert('Generation failed: ' + error));
+      .catch(error => alert('生成錯誤：' + error));
     }
   </script>
 </body>
