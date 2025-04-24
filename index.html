@@ -146,7 +146,7 @@
       .then(response => response.json())
       .then(data => {
         const musicFile = data.music_file;
-        const downloadUrl = 'http://localhost:5000/download/' + musicFile;
+        const downloadUrl = ' https://34a6-125-209-169-205.ngrok-free.app/' + musicFile;
         const downloadLink = document.getElementById('download-link');
         downloadLink.href = downloadUrl;
         downloadLink.classList.remove('disabled');
