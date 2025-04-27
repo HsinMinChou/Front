@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>HSINMIN GLOBAL MUSIC</title>
   <style>
     body {
@@ -16,24 +16,9 @@
       justify-content: center;
       height: 100vh;
     }
-
-    .logo {
-      text-align: center;
-      margin-bottom: 40px;
-    }
-
-    .logo h1 {
-      font-size: 60px;
-      margin: 0;
-      font-weight: normal;
-    }
-
-    .logo p {
-      margin: 5px 0 0;
-      font-size: 16px;
-      letter-spacing: 1px;
-    }
-
+    .logo { text-align: center; margin-bottom: 40px; }
+    .logo h1 { font-size: 60px; margin: 0; font-weight: normal; }
+    .logo p { margin:5px 0 0; font-size:16px; letter-spacing:1px; }
     .generate-button {
       background-color: #ded6c1;
       color: #0b0b0b;
@@ -44,7 +29,6 @@
       cursor: pointer;
       margin-bottom: 20px;
     }
-
     .input-container {
       background-color: #ded6c1;
       border-radius: 20px;
@@ -54,7 +38,6 @@
       display: flex;
       align-items: center;
     }
-
     .input-container input[type="text"] {
       border: none;
       background: none;
@@ -63,33 +46,18 @@
       width: 100%;
       outline: none;
     }
-
-    .input-container .icon-button {
+    .icon-button {
       background: none;
       border: none;
       cursor: pointer;
       margin-left: 10px;
       font-size: 18px;
     }
-
-    .f-hole {
-      position: absolute;
-      top: 50px;
-      font-size: 120px;
-      color: #333;
-    }
-
-    .f-left {
-      left: 40px;
-    }
-
-    .f-right {
-      right: 40px;
-    }
-
-    #file-upload {
-      display: none;
-    }
+    .f-hole { position: absolute; top: 50px; font-size: 120px; color: #333; }
+    .f-left { left: 40px; }
+    .f-right { right: 40px; }
+    #file-upload { display: none; }
+    #download-link { display: none; } /* 初始隱藏 */
   </style>
 </head>
 <body>
@@ -104,65 +72,69 @@
   <button class="generate-button" onclick="handleGenerate()">GENERATE</button>
 
   <div class="input-container">
-    <input type="text" id="genre-input" placeholder="TYPE THE SEPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT">
+    <input type="text" id="genre-input" placeholder="TYPE THE SEPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT" />
     <button class="icon-button" onclick="document.getElementById('file-upload').click()">📎</button>
-    <input type="file" id="file-upload">
-    <a class="icon-button" id="download-link" href="#" download style="font-size: 18px;">⬇️</a>
+    <input type="file" id="file-upload" />
+    <a class="icon-button" id="download-link" href="#" download>⬇️</a>
   </div>
 
   <script>
-    let uploadedFileName = null;
     const BACKEND_URL = "https://binding-tokyo-closest-versus.trycloudflare.com";
-  
-    document.getElementById('file-upload').addEventListener('change', function(event) {
-      const file = event.target.files[0];
+    let uploadedFileName = null;
+
+    document.getElementById('file-upload').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
       const formData = new FormData();
       formData.append('video', file);
-  
-      fetch(`${BACKEND_URL}/upload`, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => response.json())
-      .then(data => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData });
+        const data = await res.json();
         if (data.status === "success") {
           uploadedFileName = data.filename;
-          alert('影片上傳成功：' + uploadedFileName);
+          alert(`影片上傳成功：${uploadedFileName}`);
         } else {
-          alert('上傳失敗：' + data.error);
+          throw new Error(data.error);
         }
-      })
-      .catch(error => alert('上傳錯誤：' + error));
+      } catch (err) {
+        alert(`上傳錯誤：${err.message}`);
+      }
     });
-  
-    function handleGenerate() {
+
+    async function handleGenerate() {
       if (!uploadedFileName) {
         alert('請先上傳影片檔案。');
         return;
       }
-  
-      fetch(`${BACKEND_URL}/generate`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ filename: uploadedFileName })
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.status === "success") {
-          const musicFile = data.music_file;
-          const downloadUrl = `${BACKEND_URL}/download/${musicFile}`;
-          const downloadLink = document.getElementById('download-link');
-          downloadLink.href = downloadUrl;
-          downloadLink.classList.remove('disabled');
-          alert('音樂生成成功！請點箭頭下載。');
-        } else {
-          alert('音樂生成失敗：' + data.error);
+      try {
+        const res = await fetch(`${BACKEND_URL}/generate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ filename: uploadedFileName })
+        });
+
+        // 若後端回錯誤（JSON），先解析再報錯
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || res.statusText);
         }
-      })
-      .catch(error => alert('生成錯誤：' + error));
+
+        // 真正取 MP4 二進位 Blob
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+
+        // 設定下載連結
+        const link = document.getElementById('download-link');
+        link.href = url;
+        link.download = uploadedFileName.replace(/\.\w+$/, '') + '_with_music.mp4';
+        link.style.display = 'inline';  // 顯示箭頭按鈕
+        alert('音樂生成成功！請點箭頭下載。');
+
+      } catch (err) {
+        alert(`生成錯誤：${err.message}`);
+      }
     }
   </script>
 </body>
 </html>
+
