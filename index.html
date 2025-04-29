@@ -17,6 +17,7 @@
       align-items: center;
       justify-content: center;
       height: 100vh;
+      position: relative;
     }
 
     .logo {
@@ -87,30 +88,72 @@
       height: auto;
     }
 
-    .f-hole {
+    /* Guide Button */
+    #guide-button {
+      background: none;
+      border: none;
+      cursor: pointer;
       position: absolute;
-      top: 50px;
-      font-size: 120px;
-      color: #333;
+      bottom: 10px;
+      right: 10px;
+      padding: 0;
+      z-index: 500;
+    }
+    #guide-button img {
+      width: 30px;
+      height: auto;
     }
 
+    /* Compact User Guide Panel */
+    #guide-modal {
+      display: none;
+      position: fixed;
+      bottom: 50px;
+      right: 10px;
+      background-color: #ded6c1;
+      color: #0b0b0b;
+      padding: 12px;
+      border-radius: 12px;
+      width: 200px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      z-index: 400;
+    }
+    #guide-modal h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      text-align: center;
+    }
+    #guide-modal ol {
+      margin: 0 0 8px;
+      padding-left: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    #guide-close {
+      display: block;
+      margin: 4px auto 0;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      color: #0b0b0b;
+    }
+
+    .f-hole { position: absolute; top: 50px; font-size: 120px; color: #333; }
     .f-left { left: 40px; }
     .f-right { right: 40px; }
-
     #file-upload { display: none; }
 
     /* Loader Wrapper Overlay */
     #loader-wrapper {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       display: none;
       align-items: center;
       justify-content: center;
       background: rgba(0, 0, 0, 0.7);
-      z-index: 1000;
+      z-index: 300;
     }
 
     /* Spinner Loader */
@@ -133,64 +176,59 @@
 </head>
 <body>
   <!-- Loader Overlay -->
-  <div id="loader-wrapper">
-    <div class="loader"></div>
-  </div>
-
+  <div id="loader-wrapper"><div class="loader"></div></div>
   <div class="f-hole f-left">ƒ</div>
   <div class="f-hole f-right">ƒ</div>
-
   <div class="logo">
     <img src="Business_Card-removebg-preview拷貝.png" alt="HM Logo" class="logo-image" />
     <p>HSINMIN GLOBAL MUSIC<br>PRODUCTION CORPORATION</p>
   </div>
-
-  <!-- Generate Button -->
+  <!-- Generate -->
   <button class="generate-button" onclick="handleGenerate()">
     <img src="button2.png" alt="Generate" />
   </button>
-
   <div class="input-container">
     <input type="text" id="genre-input" placeholder="TYPE THE SPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT">
-    <!-- Upload Button -->
     <button class="icon-button" onclick="document.getElementById('file-upload').click()">
       <img src="clip.png" alt="Upload" />
     </button>
     <input type="file" id="file-upload">
-    <!-- Download Button -->
     <a class="icon-button" id="download-link" href="#" download>
       <img src="button.png" alt="Download" />
     </a>
   </div>
-
+  <!-- Guide Button -->
+  <button id="guide-button"><img src="button3.png" alt="User Guide" /></button>
+  <!-- Compact Guide Panel -->
+  <div id="guide-modal">
+    <h2>User Guide</h2>
+    <ol>
+      <li>Step 1. Upload video (within 47 seconds)</li>
+      <li>Step 2. Press generate button</li>
+      <li>Step 3. Download files</li>
+    </ol>
+    <button id="guide-close">Close</button>
+  </div>
   <script>
     const BACKEND_URL = "https://binding-tokyo-closest-versus.trycloudflare.com";
     let uploadedFileName = null;
     const loaderWrapper = document.getElementById('loader-wrapper');
-
     function showLoader() { loaderWrapper.style.display = 'flex'; }
     function hideLoader() { loaderWrapper.style.display = 'none'; }
-
-    // Upload video with loader
-    document.getElementById('file-upload').addEventListener('change', function(event) {
+    document.getElementById('file-upload').addEventListener('change', function(e) {
       showLoader();
-      const file = event.target.files[0];
+      const file = e.target.files[0];
       const formData = new FormData(); formData.append('video', file);
       fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData })
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === "success") {
+        .then(r => r.json())
+        .then(data => { if (data.status === 'success') {
             uploadedFileName = data.filename;
             alert('影片上傳成功：' + uploadedFileName);
-          } else {
-            alert('上傳失敗：' + data.error);
-          }
+          } else alert('上傳失敗：' + data.error);
         })
         .catch(err => alert('上傳錯誤：' + err.message))
         .finally(() => hideLoader());
     });
-
-    // Generate with loader
     function handleGenerate() {
       if (!uploadedFileName) { alert('請先上傳影片檔案。'); return; }
       showLoader();
@@ -199,10 +237,7 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: uploadedFileName })
       })
-      .then(async res => {
-        if (!res.ok) { const err = await res.json(); throw new Error(err.error || res.statusText); }
-        return res.blob();
-      })
+      .then(async r => { if (!r.ok) { const err = await r.json(); throw new Error(err.error||r.statusText);} return r.blob(); })
       .then(blob => {
         const url = URL.createObjectURL(blob);
         const link = document.getElementById('download-link');
@@ -210,9 +245,16 @@
         link.download = uploadedFileName.replace(/\.[^\.]+$/, '') + '_with_music.mp4';
         alert('音樂生成成功！請點按下載按鈕。');
       })
-      .catch(err => alert('生成錯誤：' + err.message))
+      .catch(err => alert('生成錯誤：'+err.message))
       .finally(() => hideLoader());
     }
+    document.getElementById('guide-button').addEventListener('click', () => {
+      const modal = document.getElementById('guide-modal');
+      modal.style.display = modal.style.display==='block'? 'none':'block';
+    });
+    document.getElementById('guide-close').addEventListener('click', () => {
+      document.getElementById('guide-modal').style.display = 'none';
+    });
   </script>
 </body>
 </html>
