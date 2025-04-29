@@ -37,15 +37,17 @@
       letter-spacing: 1px;
     }
 
+    /* Button Styles */
     .generate-button {
-      background-color: #ded6c1;
-      color: #0b0b0b;
-      padding: 12px 30px;
-      font-size: 18px;
+      background: none;
       border: none;
-      border-radius: 20px;
       cursor: pointer;
       margin-bottom: 20px;
+    }
+    .generate-button img {
+      display: block;
+      max-width: 200px;
+      height: auto;
     }
 
     .input-container {
@@ -72,7 +74,12 @@
       border: none;
       cursor: pointer;
       margin-left: 10px;
-      font-size: 18px;
+      padding: 0;
+    }
+    .input-container .icon-button img {
+      display: block;
+      width: 24px;
+      height: 24px;
     }
 
     .f-hole {
@@ -82,21 +89,10 @@
       color: #333;
     }
 
-    .f-left {
-      left: 40px;
-    }
+    .f-left { left: 40px; }
+    .f-right { right: 40px; }
 
-    .f-right {
-      right: 40px;
-    }
-
-    #file-upload {
-      display: none;
-    }
-
-    #download-link {
-      /* 保留原本樣式 */
-    }
+    #file-upload { display: none; }
 
     /* Loader Wrapper Overlay */
     #loader-wrapper {
@@ -127,10 +123,7 @@
       -webkit-mask: radial-gradient(circle 5px, #0000 90%, #000);
       animation: l9 1.5s infinite linear;
     }
-
-    @keyframes l9 {
-      100% { transform: rotate(1turn); }
-    }
+    @keyframes l9 { 100% { transform: rotate(1turn); } }
   </style>
 </head>
 <body>
@@ -147,13 +140,22 @@
     <p>HSINMIN GLOBAL MUSIC<br>PRODUCTION CORPORATION</p>
   </div>
 
-  <button class="generate-button" onclick="handleGenerate()">GENERATE</button>
+  <!-- Generate Button -->
+  <button class="generate-button" onclick="handleGenerate()">
+    <img src="button2.png" alt="Generate" />
+  </button>
 
   <div class="input-container">
-    <input type="text" id="genre-input" placeholder="TYPE THE SEPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT">
-    <button class="icon-button" onclick="document.getElementById('file-upload').click()">📎</button>
+    <input type="text" id="genre-input" placeholder="TYPE THE SPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT">
+    <!-- Upload Button -->
+    <button class="icon-button" onclick="document.getElementById('file-upload').click()">
+      <img src="clip.png" alt="Upload" />
+    </button>
     <input type="file" id="file-upload">
-    <a class="icon-button" id="download-link" href="#" download style="font-size: 18px;">⬇️</a>
+    <!-- Download Button -->
+    <a class="icon-button" id="download-link" href="#" download>
+      <img src="button.png" alt="Download" />
+    </a>
   </div>
 
   <script>
@@ -161,21 +163,14 @@
     let uploadedFileName = null;
     const loaderWrapper = document.getElementById('loader-wrapper');
 
-    function showLoader() {
-      loaderWrapper.style.display = 'flex';
-    }
-
-    function hideLoader() {
-      loaderWrapper.style.display = 'none';
-    }
+    function showLoader() { loaderWrapper.style.display = 'flex'; }
+    function hideLoader() { loaderWrapper.style.display = 'none'; }
 
     // Upload video with loader
     document.getElementById('file-upload').addEventListener('change', function(event) {
       showLoader();
       const file = event.target.files[0];
-      const formData = new FormData();
-      formData.append('video', file);
-
+      const formData = new FormData(); formData.append('video', file);
       fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData })
         .then(res => res.json())
         .then(data => {
@@ -192,10 +187,7 @@
 
     // Generate with loader
     function handleGenerate() {
-      if (!uploadedFileName) {
-        alert('請先上傳影片檔案。');
-        return;
-      }
+      if (!uploadedFileName) { alert('請先上傳影片檔案。'); return; }
       showLoader();
       fetch(`${BACKEND_URL}/generate`, {
         method: 'POST',
@@ -203,10 +195,7 @@
         body: JSON.stringify({ filename: uploadedFileName })
       })
       .then(async res => {
-        if (!res.ok) {
-          const err = await res.json();
-          throw new Error(err.error || res.statusText);
-        }
+        if (!res.ok) { const err = await res.json(); throw new Error(err.error || res.statusText); }
         return res.blob();
       })
       .then(blob => {
@@ -214,7 +203,7 @@
         const link = document.getElementById('download-link');
         link.href = url;
         link.download = uploadedFileName.replace(/\.[^\.]+$/, '') + '_with_music.mp4';
-        alert('音樂生成成功！請點箭頭下載。');
+        alert('音樂生成成功！請點按下載按鈕。');
       })
       .catch(err => alert('生成錯誤：' + err.message))
       .finally(() => hideLoader());
