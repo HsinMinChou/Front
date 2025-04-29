@@ -1,11 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HSINMIN GLOBAL MUSIC</title>
   <style>
-    /* 全域樣式 */
     body {
       margin: 0;
       background-color: #0b0b0b;
@@ -17,9 +17,23 @@
       justify-content: center;
       height: 100vh;
     }
-    .logo { text-align: center; margin-bottom: 40px; }
-    .logo h1 { font-size: 60px; margin: 0; font-weight: normal; }
-    .logo p { margin: 5px 0 0; font-size: 16px; letter-spacing: 1px; }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .logo h1 {
+      font-size: 60px;
+      margin: 0;
+      font-weight: normal;
+    }
+
+    .logo p {
+      margin: 5px 0 0;
+      font-size: 16px;
+      letter-spacing: 1px;
+    }
 
     .generate-button {
       background-color: #ded6c1;
@@ -31,6 +45,7 @@
       cursor: pointer;
       margin-bottom: 20px;
     }
+
     .input-container {
       background-color: #ded6c1;
       border-radius: 20px;
@@ -40,6 +55,7 @@
       display: flex;
       align-items: center;
     }
+
     .input-container input[type="text"] {
       border: none;
       background: none;
@@ -48,6 +64,7 @@
       width: 100%;
       outline: none;
     }
+
     .input-container .icon-button {
       background: none;
       border: none;
@@ -55,55 +72,32 @@
       margin-left: 10px;
       font-size: 18px;
     }
-    .f-hole { position: absolute; top: 50px; font-size: 120px; color: #333; }
-    .f-left  { left: 40px; }
-    .f-right { right: 40px; }
-    #file-upload { display: none; }
-    #download-link { /* 原本樣式 */ }
 
-    /* loader + overlay */
-    .loader {
-      display: none;                   /* 預設隱藏 */
-      width: 80px;
-      aspect-ratio: 1;
-      --c: #8d7958 98%, #0000;
-      background:
-        radial-gradient(50% 70% at 50% 120%, var(--c)) top,
-        radial-gradient(70% 50% at -20% 50%, var(--c)) right,
-        radial-gradient(50% 70% at 50% -20%, var(--c)) bottom,
-        radial-gradient(70% 50% at 120% 50%, var(--c)) left;
-      background-size: 100% 50.1%, 50.1% 100%;
-      background-repeat: no-repeat;
-      -webkit-mask: radial-gradient(circle 5px, #0000 90%, #000);
-      animation: spin 1.5s infinite linear;
+    .f-hole {
+      position: absolute;
+      top: 50px;
+      font-size: 120px;
+      color: #333;
     }
-    @keyframes spin {
-      100% { transform: rotate(1turn); }
+
+    .f-left {
+      left: 40px;
     }
-    .overlay {
-      display: none;                   /* 預設隱藏 */
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.4);
-      z-index: 9999;
-      align-items: center;
-      justify-content: center;
-      display: flex;
+
+    .f-right {
+      right: 40px;
     }
-    .overlay.active {
-      display: flex;
+
+    #file-upload {
+      display: none;
     }
-    .overlay.active .loader {
-      display: block;                  /* 顯示 spinner */
+
+    #download-link {
+      /* 保留原本樣式 */
     }
   </style>
 </head>
 <body>
-  <!-- overlay 放最外層 -->
-  <div id="overlay" class="overlay">
-    <div class="loader"></div>
-  </div>
-
   <div class="f-hole f-left">ƒ</div>
   <div class="f-hole f-right">ƒ</div>
 
@@ -112,102 +106,71 @@
     <p>HSINMIN GLOBAL MUSIC<br>PRODUCTION CORPORATION</p>
   </div>
 
-  <button class="generate-button" id="generateBtn">GENERATE</button>
+  <button class="generate-button" onclick="handleGenerate()">GENERATE</button>
 
   <div class="input-container">
-    <input
-      type="text"
-      id="genre-input"
-      placeholder="TYPE THE SPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT"
-    />
-    <button class="icon-button" id="uploadBtn">📎</button>
-    <input type="file" id="file-upload" />
-
-    <a
-      class="icon-button"
-      id="download-link"
-      href="#"
-      download
-      style="font-size: 18px;"
-      >⬇️</a
-    >
+    <input type="text" id="genre-input" placeholder="TYPE THE SEPECIFIC GENRE. ORCHESTRATION. OUTPUT FORMAT">
+    <button class="icon-button" onclick="document.getElementById('file-upload').click()">📎</button>
+    <input type="file" id="file-upload">
+    <a class="icon-button" id="download-link" href="#" download style="font-size: 18px;">⬇️</a>
   </div>
 
-  <script>
-    const BACKEND_URL = "https://binding-tokyo-closest-versus.trycloudflare.com";
-    let uploadedFileName = null;
+<script>
+  const BACKEND_URL = "https://binding-tokyo-closest-versus.trycloudflare.com";
+  let uploadedFileName = null;
 
-    // loader controls
-    const overlay = document.getElementById("overlay");
-    function showLoader() {
-      overlay.classList.add("active");
-    }
-    function hideLoader() {
-      overlay.classList.remove("active");
-    }
+  // 上傳影片：保持原樣
+  document.getElementById('file-upload').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    const formData = new FormData();
+    formData.append('video', file);
 
-    // 上傳按鈕綁定
-    document.getElementById("uploadBtn").addEventListener("click", () => {
-      document.getElementById("file-upload").click();
-    });
-
-    document
-      .getElementById("file-upload")
-      .addEventListener("change", function (event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        showLoader();
-        const formData = new FormData();
-        formData.append("video", file);
-
-        fetch(`${BACKEND_URL}/upload`, { method: "POST", body: formData })
-          .then((res) => res.json())
-          .then((data) => {
-            if (data.status === "success") {
-              uploadedFileName = data.filename;
-              alert("影片上傳成功：" + uploadedFileName);
-            } else {
-              alert("上傳失敗：" + data.error);
-            }
-          })
-          .catch((err) => alert("上傳錯誤：" + err.message))
-          .finally(hideLoader);
-      });
-
-    // 生成按鈕綁定
-    document.getElementById("generateBtn").addEventListener("click", () => {
-      if (!uploadedFileName) {
-        alert("請先上傳影片檔案。");
-        return;
-      }
-
-      showLoader();
-      fetch(`${BACKEND_URL}/generate`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ filename: uploadedFileName }),
+    fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData })
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === "success") {
+          uploadedFileName = data.filename;
+          alert('影片上傳成功：' + uploadedFileName);
+        } else {
+          alert('上傳失敗：' + data.error);
+        }
       })
-        .then(async (res) => {
-          if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error || res.statusText);
-          }
-          return res.blob();
-        })
-        .then((blob) => {
-          const url = URL.createObjectURL(blob);
-          const link = document.getElementById("download-link");
-          link.href = url;
-          link.download =
-            uploadedFileName.replace(/\.\w+$/, "") + "_with_music.mp4";
-          alert("音樂生成成功！請點箭頭下載。");
-        })
-        .catch((err) => {
-          alert("生成錯誤：" + err.message);
-        })
-        .finally(hideLoader);
+      .catch(err => alert('上傳錯誤：' + err.message));
+  });
+
+  // **整段換掉這個**：正確拿 MP4
+  function handleGenerate() {
+    if (!uploadedFileName) {
+      alert('請先上傳影片檔案。');
+      return;
+    }
+
+    fetch(`${BACKEND_URL}/generate`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filename: uploadedFileName })
+    })
+    .then(async res => {
+      if (!res.ok) {
+        // 如果後端回錯誤，先讀 JSON
+        const err = await res.json();
+        throw new Error(err.error || res.statusText);
+      }
+      // 這裡改成 blob
+      return res.blob();
+    })
+    .then(blob => {
+      // 建立臨時 URL
+      const url = URL.createObjectURL(blob);
+      const link = document.getElementById('download-link');
+      link.href = url;
+      link.download = uploadedFileName.replace(/\.\w+$/, '') + '_with_music.mp4';
+      alert('音樂生成成功！請點箭頭下載。');
+    })
+    .catch(err => {
+      alert('生成錯誤：' + err.message);
     });
-  </script>
+  }
+</script>
 </body>
 </html>
