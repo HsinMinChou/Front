@@ -221,7 +221,8 @@
       const formData = new FormData(); formData.append('video', file);
       fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData })
         .then(r => r.json())
-        .then(data => { if (data.status === 'success') {
+        .then(data => {
+          if (data.status === 'success') {
             uploadedFileName = data.filename;
             alert('影片上傳成功：' + uploadedFileName);
           } else alert('上傳失敗：' + data.error);
@@ -229,6 +230,7 @@
         .catch(err => alert('上傳錯誤：' + err.message))
         .finally(() => hideLoader());
     });
+
     function handleGenerate() {
       if (!uploadedFileName) { alert('請先上傳影片檔案。'); return; }
       showLoader();
@@ -237,20 +239,27 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filename: uploadedFileName })
       })
-      .then(async r => { if (!r.ok) { const err = await r.json(); throw new Error(err.error||r.statusText);} return r.blob(); })
+      .then(async r => {
+        if (!r.ok) {
+          const err = await r.json();
+          throw new Error(err.error || r.statusText);
+        }
+        return r.blob();
+      })
       .then(blob => {
         const url = URL.createObjectURL(blob);
         const link = document.getElementById('download-link');
         link.href = url;
-        link.download = uploadedFileName.replace(/\.[^\.]+$/, '') + '_with_music.mp4';
-        alert('音樂生成成功！請點按下載按鈕。');
+        link.download = uploadedFileName.replace(/\.[^\.]+$/, '') + '.zip';
+        alert('生成完成！請點擊下載圖示下載 MP4、MIDI 與 PDF 樂譜。');
       })
-      .catch(err => alert('生成錯誤：'+err.message))
+      .catch(err => alert('生成錯誤：' + err.message))
       .finally(() => hideLoader());
     }
+
     document.getElementById('guide-button').addEventListener('click', () => {
       const modal = document.getElementById('guide-modal');
-      modal.style.display = modal.style.display==='block'? 'none':'block';
+      modal.style.display = modal.style.display === 'block' ? 'none' : 'block';
     });
     document.getElementById('guide-close').addEventListener('click', () => {
       document.getElementById('guide-modal').style.display = 'none';
